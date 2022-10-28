@@ -36,19 +36,20 @@ module.exports = {
         bodyData = data.data;
         User.findOne({_id:id},(err,data)=>{
             if(err) done(true);
-            new_exercise = new Exercise({
+            var new_exercise = new Exercise({
                 description: bodyData.description,
-                duration: bodyData.duration,
-                date: (bodyData.date == undefined || bodyData.date == null) ? new Date().toDateString() : new Date(bodyData.date).toDateString()
+                duration: parseInt(bodyData.duration),
+                date: (bodyData.date == undefined || bodyData.date == null || bodyData.date == '') ? new Date().toDateString() : new Date(bodyData.date).toDateString()
             });
+            data['logs'].push(new_exercise);
             data.markModified('logs');
             data.save((err,resp)=>{
                 if(err) done(true);
                 var sending = {
                     _id: resp._id,
                     username: resp.username,
-                    date: (bodyData.date == undefined || bodyData.date == null) ? new Date().toDateString() : new Date(bodyData.date).toDateString(),
-                    duration: bodyData.duration,
+                    date: (bodyData.date == undefined || bodyData.date == null || bodyData.date == '') ? new Date().toDateString() : new Date(bodyData.date).toDateString(),
+                    duration: parseInt(bodyData.duration),
                     description: bodyData.description
                 };
                 done(false,sending);
@@ -80,6 +81,7 @@ module.exports = {
             if(err) done(true);
 
             let res = {};
+          let limitval = 0;
             res['_id'] = data['_id'];
             res['username'] = data['username'];
             if(from != null) res['from'] = new Date(from).toDateString();
@@ -97,10 +99,13 @@ module.exports = {
                     if(!toDate(new Date(to),new Date(e.date))) return;
                 if(limit != null && limit != '0')
                 {
-                    if(i<limit) return cur;
+                    if(limitval<limit) {
+                      limitval++;
+                      return cur;
+                    }
                     else return;
                 } else return cur;
-            }).filter(e=>e); 
+            }).filter(e=>e).reverse(); 
             res['count'] = res['log'].length;
             done(false,res);
         });

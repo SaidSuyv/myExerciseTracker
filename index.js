@@ -2,13 +2,14 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const mongo = require('./mongo');
-require('dotenv').config()
+require('dotenv').config();
+const bodyParser = require('body-parser');
 
 mongo.connect(process.env.MONGO_URI);
 
 app.use(cors())
 app.use(express.static('public'))
-app.use(express.json());
+app.use(bodyParser.urlencoded({extended:false}));
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
